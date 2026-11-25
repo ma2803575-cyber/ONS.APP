@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import Optional
 from fastapi import FastAPI, Depends, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, EmailStr
@@ -17,6 +18,7 @@ from .security import hash_password, verify_password, make_token, current_user, 
 APP_NAME = "أُنس | ONS"
 TAGLINE = "بالقرب من القرآن تحيا القلوب"
 app = FastAPI(title="ONS API", version="1.0.0")
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(CORSMiddleware, allow_origins=config.CORS_ORIGINS, allow_methods=["*"], allow_headers=["*"])
 init_db()
 today = lambda: dt.date.today()
@@ -624,5 +626,7 @@ if config.FRONTEND_DIST.exists():
     def spa(path: str):
         if path.startswith("api/"): raise HTTPException(404)
         f = (config.FRONTEND_DIST / path).resolve()
-        if path and f.is_file() and config.FRONTEND_DIST.resolve() in f.parents: return FileResponse(f)
-        return FileResponse(config.FRONTEND_DIST / "index.html")
+        if path and f.is_file() and config.FRONTEND_DIST.resolve() in f.parents:
+            # the service worker file must never be served stale, or installed apps would not update
+            return FileResponse(f, headers={"Cache-Control": "no-cache"} if path == "sw.js" else None)
+        return FileResponse(config.FRONTEND_DIST / "index.html", headers={"Cache-Control": "no-cache"})

@@ -52,3 +52,6 @@ scripts/fetch_data.py  يعيد بناء ملفات البيانات من الم
 
 ## ما ينقص (بصراحة)
 انظر `REPORT.md`.
+
+## Offline use
+The app is an installable PWA. After the first visit the service worker saves the app shell and all Quran text, adhkar and duas on the device, so these open with no internet. Last-read position and bookmarks work offline (kept on the device; signed-in users sync when back online). Needs internet: audio, search, AI assistant, tafsir for ayahs not opened before, account actions. A new deploy updates installed copies automatically.

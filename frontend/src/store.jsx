@@ -33,13 +33,16 @@ export function AppProvider({ children }) {
   const loadUser = useCallback(async () => {
     if (!getToken()) { setUser(null); setReady(true); return }
     try {
-      const u = await get('/me'); setUser(u)
+      const u = await get('/me'); setUser(u); writeJSON('ons_user', u)
       if (u.settings && Object.keys(u.settings).length) setSettingsState((s) => ({ ...s, ...u.settings }))
-    } catch { setUser(null) }
+    } catch (e) {
+      // Offline: stay signed in with the last known profile instead of looking logged out.
+      if (e?.status === 0) setUser(readJSON('ons_user', null)); else setUser(null)
+    }
     setReady(true)
   }, [])
 
-  useEffect(() => { loadUser(); const f = () => setUser(null); window.addEventListener('ons-logout', f); return () => window.removeEventListener('ons-logout', f) }, [loadUser])
+  useEffect(() => { loadUser(); flushPendingLast(); window.addEventListener('online', flushPendingLast); const f = () => { setUser(null); resetOfflineUserData(true) }; window.addEventListener('ons-logout', f); return () => { window.removeEventListener('ons-logout', f); window.removeEventListener('online', flushPendingLast) } }, [loadUser])
 
   const refreshUnread = useCallback(async () => {
     if (!getToken()) return setUnread(0)
@@ -64,17 +67,23 @@ export function AppProvider({ children }) {
     const r = await post(path, body); setToken(r.token); setUser(r.user)
     if (r.user.settings && Object.keys(r.user.settings).length) setSettingsState((s) => ({ ...s, ...r.user.settings }))
     else patch('/me', { settings }).catch(() => {})
+    resetOfflineUserData(); writeJSON('ons_user', r.user)
     await importGuestData(); refreshUnread(); return r.user
   }
   const login = (email, password) => auth('/auth/login', { email, password })
   const register = (name, email, password) => auth('/auth/register', { name, email, password })
-  const logout = () => { setToken(null); setUser(null); setUnread(0) }
+  const logout = () => { setToken(null); setUser(null); setUnread(0); resetOfflineUserData(true) }
 
   return (
     <Ctx.Provider value={{ user, ready, settings, setSettings, login, register, logout, notify, toast, unread, refreshUnread, setUser }}>
       {children}
     </Ctx.Provider>
   )
+}
+
+// Drop the previous user's offline copies and refresh shared content (favorite flags are per user).
+export function resetOfflineUserData(signOut = false) {
+  try { localStorage.removeItem('ons_user'); if (signOut) { localStorage.removeItem('ons_g_last'); localStorage.removeItem('ons_last_pending') } if (window.caches) caches.delete('ons-user'); navigator.serviceWorker?.controller?.postMessage('refresh-content') } catch { /* empty */ }
 }
 
 // ---- guest data (bookmarks / last position) lives in localStorage and is imported on first login ----
@@ -113,6 +122,31 @@ export function useBookmarks() {
   }
   return { ids, toggle }
 }
+// Last-read position: always kept on the device (works offline); signed-in users also sync it to the server,
+// and a save that fails offline is retried when the connection returns.
 export async function saveLast(user, g) {
-  if (user) { try { await put('/reading/last', { ayah: g }) } catch { /* empty */ } } else guest.setLast(g)
+  guest.setLast(g)
+  if (!user) return
+  try { await put('/reading/last', { ayah: g }); localStorage.removeItem('ons_last_pending') }
+  catch (e) { if (e?.status === 0) localStorage.setItem('ons_last_pending', String(g)) }
+}
+export async function flushPendingLast() {
+  const g = Number(localStorage.getItem('ons_last_pending')); if (!g || !getToken()) return
+  try { await put('/reading/last', { ayah: g }); localStorage.removeItem('ons_last_pending') } catch { /* retry later */ }
+}
+// One ayah, even offline: falls back to the surah text that the service worker saved for offline reading.
+export async function ayahAnywhere(g) {
+  try { return await get('/ayah/' + g + '?tafsir=none') } catch (e) {
+    if (e?.status !== 0) throw e
+    const list = await get('/surahs'); const s = [...list].reverse().find((x) => x.first_g <= g)
+    const d = s && await get('/surahs/' + s.n); const a = d?.ayahs.find((x) => x.g === g)
+    if (!a) throw e
+    return a
+  }
+}
+// Last-read ayah to show: server copy when reachable, otherwise the copy on this device.
+export async function lastReadAyah(user) {
+  const local = guest.last()
+  if (user) { try { const r = await get('/reading/last'); if (r) return r } catch (e) { if (e?.status !== 0) throw e } }
+  return local ? ayahAnywhere(local) : null
 }

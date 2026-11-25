@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { get } from '../api'
 import { PageHeader, Spinner, ErrorBox, useLoad, Empty } from '../components/ui'
 import Icon from '../components/Icon'
-import { useApp, guest, useBookmarks } from '../store'
+import { useApp, guest, useBookmarks, ayahAnywhere, lastReadAyah } from '../store'
 import { toAr } from '../lib'
 
 export default function Quran() {
@@ -11,7 +11,7 @@ export default function Quran() {
   const [q, setQ] = useState(''); const [res, setRes] = useState(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState('')
   const [tab, setTab] = useState('surah')
   const s = useLoad(() => get('/surahs'), [])
-  const last = useLoad(() => (user ? get('/reading/last') : Promise.resolve(guest.last() ? get('/ayah/' + guest.last() + '?tafsir=none') : null)), [user])
+  const last = useLoad(() => lastReadAyah(user), [user])
 
   useEffect(() => {
     if (q.trim().length < 2) { setRes(null); setErr(''); return }
@@ -67,7 +67,7 @@ export function Bookmarks() {
   const { user } = useApp(); const bm = useBookmarks()
   const l = useLoad(async () => {
     if (user) return get('/bookmarks')
-    const ids = guest.bookmarks(); return Promise.all(ids.map((g) => get('/ayah/' + g + '?tafsir=none')))
+    const ids = guest.bookmarks(); return Promise.all(ids.map((g) => ayahAnywhere(g)))
   }, [user, bm.ids.size])
   return (
     <div><PageHeader title="العلامات المرجعية" />
