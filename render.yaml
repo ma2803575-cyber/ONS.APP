@@ -1,0 +1,12 @@
+# Render Blueprint (prepared, NOT deployed). Free Docker web service; database = free Neon Postgres (DATABASE_URL pasted manually).
+services:
+  - type: web
+    name: ons
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: ONS_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false

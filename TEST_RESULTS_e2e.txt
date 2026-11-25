@@ -1,0 +1,44 @@
+PASS splash shows name
+PASS onboarding after splash
+PASS register validation shows error
+PASS home greets user with name
+PASS home shows hijri date
+PASS surah list has 114 entries
+PASS search returns ayah results
+PASS Fatiha shows 7 ayah markers
+PASS reader contains Quran text
+PASS bookmark persisted via API
+PASS "reached here" without plan shows server message
+PASS tafsir shows source
+PASS last read saved to server
+PASS plan preview computes 11 pages
+PASS khatma plan created
+PASS logging 10 pages updates progress
+PASS wird shows today 10/11
+PASS memorization list has surah 112
+PASS adhkar category shows items
+PASS tasbeeh counter increments and saves
+PASS quranic dua text shown
+PASS sadaqah lists official links
+PASS assistant returns ayahs with sources
+PASS assistant refuses fatwa
+PASS dashboard shows khatma progress
+PASS notifications exist
+PASS dark mode toggles class
+PASS wrong password shows error
+PASS login works again
+PASS guest can read Baqarah (286 ayahs)
+PASS guest sees login gate on khatma
+PASS desktop sidebar visible
+PASS no horizontal overflow at 360px /home :: overflow 0
+PASS no horizontal overflow at 360px /quran :: overflow 0
+PASS no horizontal overflow at 360px /surah/2 :: overflow 0
+PASS no horizontal overflow at 360px /adhkar :: overflow 0
+PASS no horizontal overflow at 360px /tasbeeh :: overflow 0
+PASS no horizontal overflow at 360px /assistant :: overflow 0
+PASS no horizontal overflow at 360px /duas :: overflow 0
+PASS no horizontal overflow at 360px /sadaqah :: overflow 0
+PASS no horizontal overflow at 360px /audio :: overflow 0
+PASS no JS/console errors
+
+42/42 passed

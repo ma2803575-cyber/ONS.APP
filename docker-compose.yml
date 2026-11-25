@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:16
+    environment: { POSTGRES_USER: ons, POSTGRES_PASSWORD: ons, POSTGRES_DB: ons }
+    volumes: [pgdata:/var/lib/postgresql/data]
+  app:
+    build: .
+    depends_on: [db]
+    environment:
+      DATABASE_URL: postgresql+psycopg2://ons:ons@db:5432/ons
+      ONS_SECRET_KEY: ${ONS_SECRET_KEY:?set ONS_SECRET_KEY}
+    ports: ["8000:8000"]
+volumes: { pgdata: {} }
