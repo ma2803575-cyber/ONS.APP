@@ -44,6 +44,9 @@ export function AppProvider({ children }) {
 
   useEffect(() => { loadUser(); flushPendingLast(); window.addEventListener('online', flushPendingLast); const f = () => { setUser(null); resetOfflineUserData(true) }; window.addEventListener('ons-logout', f); return () => { window.removeEventListener('ons-logout', f); window.removeEventListener('online', flushPendingLast) } }, [loadUser])
 
+  // A signed-in view without a stored token can only get 401s: fall back to the signed-out state.
+  useEffect(() => { if (user && !getToken()) setUser(null) }, [user])
+
   const refreshUnread = useCallback(async () => {
     if (!getToken()) return setUnread(0)
     try { setUnread((await get('/notifications')).unread) } catch { /* empty */ }

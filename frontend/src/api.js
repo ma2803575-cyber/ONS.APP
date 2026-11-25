@@ -27,7 +27,7 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
   let data = null
   try { data = await res.json() } catch { /* empty */ }
   if (!res.ok) {
-    if (res.status === 401 && t) { setToken(null); window.dispatchEvent(new Event('ons-logout')) }
+    if (res.status === 401 && !path.startsWith('/auth/')) { setToken(null); window.dispatchEvent(new Event('ons-logout')) } // expired/invalid session: sign out cleanly so the login screen shows instead of an error
     throw new ApiError(res.status, message(data?.detail))
   }
   return data
