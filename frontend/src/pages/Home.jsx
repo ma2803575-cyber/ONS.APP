@@ -6,6 +6,7 @@ import { useLoad, Spinner, ErrorBox, Ring, Bar } from '../components/ui'
 import Icon from '../components/Icon'
 import { useEffect, useState } from 'react'
 import Prayer from '../components/Prayer'
+import Reminders from '../components/Reminders'
 import { ayahAnywhere } from '../store'
 import { surahLabel, hijriDate, gregDate, greeting, toAr, readJSON, todayISO } from '../lib'
 
@@ -41,6 +42,7 @@ export default function Home() {
         <p className="text-emerald-100/90 mt-1">بالقرب من القرآن تحيا القلوب</p>
       </div>
       <Prayer />
+      <Reminders />
       <DailyAyah />
       <div className="grid grid-cols-4 gap-2">{SHORTCUTS.map(([to, ic, l]) => (
         <Link key={to} to={to} className="card !p-3 flex flex-col items-center gap-1 text-center hover:ring-2 ring-gold-400"><Icon name={ic} className="w-6 h-6 text-emerald-700 dark:text-gold-300" /><span className="text-xs font-semibold">{l}</span></Link>))}</div>

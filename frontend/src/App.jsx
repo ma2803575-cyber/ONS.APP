@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
+import { useReminderTicker } from './components/Reminders'
 const Splash = lazy(() => import('./pages/Splash'))
 const Onboarding = lazy(() => import('./pages/Onboarding'))
 const Login = lazy(() => import('./pages/Auth').then(m => ({ default: m.Login })))
@@ -33,6 +34,7 @@ const Menu = lazy(() => import('./pages/Account').then(m => ({ default: m.Menu }
 const NotFound = lazy(() => import('./pages/Account').then(m => ({ default: m.NotFound })))
 
 export default function App() {
+  useReminderTicker()
   return (
     <Suspense fallback={<div className="p-8 text-center opacity-60">...</div>}>
     <Routes>
