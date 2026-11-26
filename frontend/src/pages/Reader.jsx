@@ -5,7 +5,7 @@ import { PageHeader, Spinner, ErrorBox, useLoad } from '../components/ui'
 import Icon from '../components/Icon'
 import { useApp, useBookmarks, saveLast, ayahAnywhere } from '../store'
 import { useAudio } from '../audio'
-import { toAr, ayahShareText, shareText, copyText, surahLabel } from '../lib'
+import { toAr, ayahShareText, shareText, copyText, surahLabel, shareAyahImage } from '../lib'
 
 const THEMES = { paper: 'mushaf-paper', sepia: 'mushaf-sepia', night: 'mushaf-night' }
 const NEXT_THEME = { paper: 'sepia', sepia: 'night', night: 'paper' }
@@ -168,6 +168,7 @@ export function AyahSheet({ a, close, bm, audio, nav, user, notify }) {
           <button className="btn-ghost flex-col" onClick={async () => { notify((await copyText(ayahShareText(a))) ? 'نُسخت الآية' : 'تعذر النسخ', 'ok'); close() }}><Icon name="copy" />نسخ</button>
           <button className="btn-ghost flex-col" onClick={async () => { const r = await shareText(ayahShareText(a)); if (r === 'copied') notify('نُسخت الآية للمشاركة'); close() }}><Icon name="share" />مشاركة</button>
           <button className="btn-ghost flex-col" onClick={reach}><Icon name="check" />وصلت هنا (ختمة)</button>
+          <button className="btn-gold col-span-3" onClick={async () => { const s = await shareAyahImage(a); notify(s === 'saved' ? 'تم حفظ صورة الآية' : s === 'fail' ? 'تعذر إنشاء الصورة' : 'تمت المشاركة', s === 'fail' ? 'err' : 'ok'); close() }}><Icon name="share" />مشاركة الآية كصورة</button>
         </div>
       </div>
     </div>

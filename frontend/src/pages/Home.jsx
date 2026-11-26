@@ -4,12 +4,29 @@ import { get } from '../api'
 import { useApp, guest } from '../store'
 import { useLoad, Spinner, ErrorBox, Ring, Bar } from '../components/ui'
 import Icon from '../components/Icon'
-import { hijriDate, gregDate, greeting, toAr, readJSON, todayISO } from '../lib'
+import { useEffect, useState } from 'react'
+import { ayahAnywhere } from '../store'
+import { surahLabel, hijriDate, gregDate, greeting, toAr, readJSON, todayISO } from '../lib'
 
 const SHORTCUTS = [
   ['/quran', 'book', 'المصحف'], ['/wird', 'flame', 'الورد'], ['/khatma', 'target', 'الختمة'], ['/memorization', 'brain', 'الحفظ'],
   ['/adhkar', 'spark', 'الأذكار'], ['/tasbeeh', 'circle', 'المسبحة'], ['/duas', 'heart', 'الأدعية'], ['/assistant', 'bot', 'المساعد'],
 ]
+const DAILY = [[2,152],[2,186],[2,255],[2,286],[3,139],[3,173],[13,28],[20,46],[94,5],[94,6],[93,3],[65,3],[39,53],[29,69],[57,4],[50,16],[2,45],[2,153],[3,159],[8,46],[14,7],[16,97],[17,80],[18,10],[24,35],[33,41],[40,60],[55,13],[67,2],[112,1]]
+function DailyAyah() {
+  const [a, setA] = useState(null)
+  useEffect(() => {
+    const d = new Date(); const day = Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(d.getFullYear(), 0, 0)) / 864e5)
+    const [s, n] = DAILY[day % DAILY.length]
+    get('/surahs').then((list) => ayahAnywhere(list.find((x) => x.n === s).first_g + n - 1)).then(setA).catch(() => {})
+  }, [])
+  if (!a) return null
+  return (
+    <Link to={`/page/${a.page}?g=${a.g}`} className="card block bg-gradient-to-l from-gold-100 to-white dark:from-gold-500/10">
+      <div className="flex justify-between muted mb-1"><span className="font-bold">آية اليوم</span><span>{surahLabel(a.surah_name)} · {toAr(a.n)}</span></div>
+      <div className="quran-text !text-[22px] !leading-[2.2] !text-center line-clamp-4">{a.text}</div>
+    </Link>)
+}
 export default function Home() {
   const { user } = useApp()
   const d = useLoad(() => (user ? get('/dashboard') : Promise.resolve(null)), [user])
@@ -22,6 +39,7 @@ export default function Home() {
         <h1 className="text-2xl font-extrabold mt-1">{greeting()}{user ? `، ${user.name}` : ''}</h1>
         <p className="text-emerald-100/90 mt-1">بالقرب من القرآن تحيا القلوب</p>
       </div>
+      <DailyAyah />
       <div className="grid grid-cols-4 gap-2">{SHORTCUTS.map(([to, ic, l]) => (
         <Link key={to} to={to} className="card !p-3 flex flex-col items-center gap-1 text-center hover:ring-2 ring-gold-400"><Icon name={ic} className="w-6 h-6 text-emerald-700 dark:text-gold-300" /><span className="text-xs font-semibold">{l}</span></Link>))}</div>
 
@@ -36,7 +54,7 @@ export default function Home() {
           <Link to="/khatma" className="card"><div className="flex justify-between font-bold mb-2"><span>ختمة القرآن</span><span>{p ? `${toAr(k.percent)}%` : '—'}</span></div><Bar value={k.percent || 0} />
             <div className="muted mt-2">{p ? `${toAr(k.pages_done)} من ٦٠٤ صفحة · الجزء ${toAr(k.juz_done)}` : 'ابدأ ختمة في 30 أو 60 أو 90 يوماً'}</div></Link>
         </div>
-        {last && <Link to={`/surah/${last.surah}?g=${last.g}`} className="card flex items-center gap-3"><Icon name="book2" className="w-8 h-8 text-gold-600" /><div className="flex-1"><div className="font-bold">آخر ما قرأت</div><div className="muted">سورة {last.surah_name} · آية {toAr(last.n)}</div></div><span className="btn-gold !py-1.5">تابع</span></Link>}
+        {last && <Link to={`/page/${last.page}?g=${last.g}`} className="card flex items-center gap-3"><Icon name="book2" className="w-8 h-8 text-gold-600" /><div className="flex-1"><div className="font-bold">آخر ما قرأت</div><div className="muted">سورة {last.surah_name} · آية {toAr(last.n)}</div></div><span className="btn-gold !py-1.5">تابع</span></Link>}
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="card !p-3"><Icon name="flame" className="w-6 h-6 mx-auto text-orange-500" /><div className="font-extrabold text-xl">{toAr(d.data.streak)}</div><div className="muted">يوم متواصل</div></div>
           <div className="card !p-3"><Icon name="book" className="w-6 h-6 mx-auto text-emerald-600" /><div className="font-extrabold text-xl">{toAr(d.data.total_pages)}</div><div className="muted">صفحة مقروءة</div></div>
