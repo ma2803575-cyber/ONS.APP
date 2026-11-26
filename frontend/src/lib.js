@@ -37,7 +37,7 @@ export async function ayahImage(a) {
   try { await document.fonts.load("40px 'Amiri Quran'", a.text) } catch { /* fall back to serif */ }
   const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H
   const x = c.getContext('2d')
-  const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#065f46'); g.addColorStop(1, '#022c22'); x.fillStyle = g; x.fillRect(0, 0, W, H)
+  const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#1b2f6b'); g.addColorStop(1, '#0a1433'); x.fillStyle = g; x.fillRect(0, 0, W, H)
   x.strokeStyle = '#c9a24b'; x.lineWidth = 6; x.strokeRect(50, 50, W - 100, H - 100); x.lineWidth = 2; x.strokeRect(70, 70, W - 140, H - 140)
   x.direction = 'rtl'; x.textAlign = 'center'; x.fillStyle = '#dcc06a'; x.font = "700 44px Cairo, sans-serif"
   x.fillText(`سورة ${surahLabel(a.surah_name)} · آية ${toAr(a.n)}`, W / 2, 170)

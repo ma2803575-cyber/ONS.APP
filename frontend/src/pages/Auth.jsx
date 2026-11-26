@@ -6,7 +6,7 @@ import { post } from '../api'
 
 function Shell({ title, children, foot }) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-emerald-50 to-paper dark:from-emerald-950 dark:to-[#0b1511]">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-emerald-50 to-paper dark:from-emerald-950 dark:to-[#080f22]">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-6"><Logo size={56} tagline /></div>
         <div className="card"><h1 className="h1 mb-4">{title}</h1>{children}</div>

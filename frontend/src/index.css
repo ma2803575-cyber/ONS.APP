@@ -11,7 +11,7 @@
 :root { --qsize: 28px; }
 html { -webkit-tap-highlight-color: transparent; }
 body { @apply bg-paper text-emerald-950 font-sans antialiased; }
-.dark body { @apply bg-[#0b1511] text-emerald-50; }
+.dark body { @apply bg-[#080f22] text-emerald-50; }
 .pad-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 6.5rem); }
 
 @layer components {
@@ -32,17 +32,17 @@ body { @apply bg-paper text-emerald-950 font-sans antialiased; }
 .dark .ayah-end { color:#dcc06a; }
 .ayah { cursor:pointer; border-radius:.5rem; transition: background .2s; }
 .ayah:hover { background: rgba(201,162,75,.12); }
-.ayah.playing { background: rgba(5,150,105,.18); }
+.ayah.playing { background: rgba(47,78,168,.18); }
 .ayah.target { background: rgba(201,162,75,.28); }
-.pattern { background-image: radial-gradient(circle at 20% 10%, rgba(201,162,75,.18), transparent 40%), radial-gradient(circle at 90% 80%, rgba(16,185,129,.25), transparent 45%); }
+.pattern { background-image: radial-gradient(circle at 20% 10%, rgba(201,162,75,.18), transparent 40%), radial-gradient(circle at 90% 80%, rgba(65,99,204,.25), transparent 45%); }
 
-.hero-bg { background: radial-gradient(circle at 15% 10%, rgba(201,162,75,.28), transparent 45%), radial-gradient(circle at 90% 90%, rgba(16,185,129,.30), transparent 50%), linear-gradient(145deg, #065f46, #022c22); }
+.hero-bg { background: radial-gradient(circle at 15% 10%, rgba(201,162,75,.28), transparent 45%), radial-gradient(circle at 90% 90%, rgba(65,99,204,.30), transparent 50%), linear-gradient(145deg, #1b2f6b, #0a1433); }
 
 /* ===== Mushaf page reader ===== */
 .mushaf-shell { min-height: 100vh; min-height: 100dvh; display:flex; flex-direction:column; transition: background .3s, color .3s; }
 .mushaf-paper { background:#f4ecd8; color:#1f2a1f; --frame:#b8923a; --ink:#1b2b1f; --bar:#fbf6e7; }
 .mushaf-sepia { background:#e6d3ac; color:#3a2a14; --frame:#8a6a2a; --ink:#3a2a14; --bar:#efe0bd; }
-.mushaf-night { background:#0b1511; color:#e8efe9; --frame:#a88a3d; --ink:#e6ece7; --bar:#10201a; }
+.mushaf-night { background:#080f22; color:#e8efe9; --frame:#a88a3d; --ink:#e6ece7; --bar:#0e1a36; }
 .mushaf-top { position:sticky; top:0; z-index:30; display:flex; align-items:center; gap:.5rem; padding:.6rem .75rem; padding-top:calc(env(safe-area-inset-top) + .6rem); background:var(--bar); border-bottom:1px solid color-mix(in srgb, var(--frame) 45%, transparent); }
 .mushaf-btn { display:inline-flex; align-items:center; justify-content:center; min-width:2.5rem; height:2.5rem; padding:0 .5rem; border-radius:.75rem; font-weight:700; background:color-mix(in srgb, var(--frame) 14%, transparent); }
 .mushaf-btn:active { transform:scale(.94); }
@@ -58,12 +58,12 @@ body { @apply bg-paper text-emerald-950 font-sans antialiased; }
 .mushaf-bar { position:sticky; bottom:0; z-index:30; display:flex; align-items:center; gap:.5rem; padding:.6rem .75rem calc(env(safe-area-inset-bottom) + .6rem); background:var(--bar); border-top:1px solid color-mix(in srgb, var(--frame) 45%, transparent); }
 .mushaf-nav, .mushaf-next { height:3rem; border-radius:.9rem; font-weight:800; transition:transform .1s, opacity .2s; }
 .mushaf-nav { padding:0 1rem; background:color-mix(in srgb, var(--frame) 16%, transparent); }
-.mushaf-next { flex:1; background:#047857; color:#fff; box-shadow:0 6px 16px -6px rgba(4,120,87,.7); font-size:1.05rem; }
-.mushaf-night .mushaf-next { background:#c9a24b; color:#022c22; }
+.mushaf-next { flex:1; background:#25408c; color:#fff; box-shadow:0 6px 16px -6px rgba(37,64,140,.7); font-size:1.05rem; }
+.mushaf-night .mushaf-next { background:#c9a24b; color:#0a1433; }
 .mushaf-nav:active, .mushaf-next:active { transform:scale(.96); }
 .mushaf-nav:disabled, .mushaf-next:disabled { opacity:.4; }
 .mushaf-count { min-width:5rem; height:3rem; font-weight:700; font-size:.9rem; border-radius:.9rem; border:1.5px solid color-mix(in srgb, var(--frame) 60%, transparent); }
-.mushaf-text .ayah.playing { background: rgba(5,150,105,.25); }
+.mushaf-text .ayah.playing { background: rgba(47,78,168,.25); }
 @keyframes turnNext { from { opacity:0; transform:translateX(-26px); } to { opacity:1; transform:none; } }
 @keyframes turnPrev { from { opacity:0; transform:translateX(26px); } to { opacity:1; transform:none; } }
 .turn-next { animation: turnNext .28s ease both; } .turn-prev { animation: turnPrev .28s ease both; }

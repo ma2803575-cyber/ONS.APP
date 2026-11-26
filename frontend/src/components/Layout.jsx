@@ -49,7 +49,7 @@ export default function Layout() {
         <div key={loc.pathname} className={immersive ? '' : 'max-w-3xl mx-auto p-4 pad-safe'}><Outlet /></div>
       </main>
       <MiniPlayer />
-      {!immersive && <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#0b1511]/95 backdrop-blur border-t border-emerald-900/10 dark:border-emerald-100/10 flex justify-around pb-[env(safe-area-inset-bottom)]" aria-label="التنقل الرئيسي">
+      {!immersive && <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#080f22]/95 backdrop-blur border-t border-emerald-900/10 dark:border-emerald-100/10 flex justify-around pb-[env(safe-area-inset-bottom)]" aria-label="التنقل الرئيسي">
         {MAIN.map((n) => (
           <NavLink key={n.to} to={n.to} className={({ isActive }) => `flex flex-col items-center gap-0.5 py-2 px-2 text-[11px] flex-1 ${isActive ? 'text-emerald-700 dark:text-gold-300 font-bold' : 'text-emerald-900/60 dark:text-emerald-100/60'}`}>
             <Icon name={n.icon} className="w-6 h-6" />{n.label}

@@ -132,7 +132,7 @@ function JumpSheet({ page, close, go }) {
   const submit = (e) => { e.preventDefault(); const n = Number(v); if (n >= 1 && n <= 604) go(n) }
   return (
     <div className="fixed inset-0 z-[60] bg-black/40 flex items-end justify-center" onClick={close} role="dialog" aria-modal="true" aria-label="الانتقال">
-      <div className="bg-paper dark:bg-[#10201a] text-emerald-950 dark:text-emerald-50 w-full max-w-md rounded-t-3xl p-5 animate-fadeUp max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-paper dark:bg-[#0e1a36] text-emerald-950 dark:text-emerald-50 w-full max-w-md rounded-t-3xl p-5 animate-fadeUp max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={submit} className="flex gap-2 mb-4">
           <input className="input" inputMode="numeric" placeholder={`رقم الصفحة (١ - ٦٠٤)، الحالية ${toAr(page)}`} value={v} onChange={(e) => setV(e.target.value.replace(/\D/g, ''))} autoFocus aria-label="رقم الصفحة" />
           <button className="btn-primary" type="submit">اذهب</button>
@@ -158,7 +158,7 @@ export function AyahSheet({ a, close, bm, audio, nav, user, notify }) {
   }
   return (
     <div className="fixed inset-0 z-[60] bg-black/40 flex items-end md:items-center justify-center" onClick={close} role="dialog" aria-modal="true" aria-label="خيارات الآية">
-      <div className="bg-paper dark:bg-[#10201a] w-full max-w-md rounded-t-3xl md:rounded-3xl p-5 animate-fadeUp" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-paper dark:bg-[#0e1a36] w-full max-w-md rounded-t-3xl md:rounded-3xl p-5 animate-fadeUp" onClick={(e) => e.stopPropagation()}>
         <div className="text-center muted mb-1">{a.surah_name} · آية {toAr(a.n)} · صفحة {toAr(a.page)}</div>
         <div className="quran-text !text-[22px] !leading-[2.2] !text-center line-clamp-3 mb-4">{a.text}</div>
         <div className="grid grid-cols-3 gap-2 text-sm">
