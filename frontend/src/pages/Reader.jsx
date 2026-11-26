@@ -1,79 +1,155 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, useSearchParams, Link, useNavigate, Navigate } from 'react-router-dom'
 import { get, post } from '../api'
 import { PageHeader, Spinner, ErrorBox, useLoad } from '../components/ui'
 import Icon from '../components/Icon'
-import { useApp, useBookmarks, saveLast } from '../store'
+import { useApp, useBookmarks, saveLast, ayahAnywhere } from '../store'
 import { useAudio } from '../audio'
-import { toAr, ayahShareText, shareText, copyText } from '../lib'
+import { toAr, ayahShareText, shareText, copyText, surahLabel } from '../lib'
+
+const THEMES = { paper: 'mushaf-paper', sepia: 'mushaf-sepia', night: 'mushaf-night' }
+const NEXT_THEME = { paper: 'sepia', sepia: 'night', night: 'paper' }
+
+// Old /surah/:n links still work: they open the mushaf page that holds the surah (or the exact ayah).
+export function SurahRedirect() {
+  const { n } = useParams(); const [sp] = useSearchParams()
+  const g = Number(sp.get('g')) || null
+  const [to, setTo] = useState(null)
+  useEffect(() => {
+    let live = true
+    ;(async () => {
+      try {
+        if (g) { const a = await ayahAnywhere(g); if (live) setTo(`/page/${a.page}?g=${g}`); return }
+        const list = await get('/surahs'); const s = list.find((x) => x.n === Number(n))
+        if (live) setTo(`/page/${s ? s.page : 1}`)
+      } catch { if (live) setTo('/page/1') }
+    })()
+    return () => { live = false }
+  }, [n, g])
+  return to ? <Navigate to={to} replace /> : <Spinner />
+}
 
 export default function Reader() {
-  const { n } = useParams(); const [sp] = useSearchParams(); const nav = useNavigate()
+  const { p } = useParams(); const [sp] = useSearchParams(); const nav = useNavigate()
   const { user, settings, setSettings, notify } = useApp(); const audio = useAudio(); const bm = useBookmarks()
-  const [sheet, setSheet] = useState(null)
+  const page = Math.min(604, Math.max(1, Number(p) || 1))
   const target = Number(sp.get('g')) || null
-  const sn = Number(n)
-  const d = useLoad(() => get('/surahs/' + sn), [sn])
-  const saveT = useRef()
+  const [sheet, setSheet] = useState(null)
+  const [jump, setJump] = useState(false)
+  const [dir, setDir] = useState('next')
+  const d = useLoad(() => get('/page/' + page), [page])
+  const theme = settings.mushafTheme || (settings.dark ? 'night' : 'paper')
+  const saveT = useRef(); const touch = useRef(null)
 
-  // scroll to target ayah
-  useEffect(() => {
-    if (!d.data) return
-    const el = target && document.getElementById('a' + target)
-    if (el) setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 150); else window.scrollTo(0, 0)
-  }, [d.data, target])
-
-  // remember last position: the ayah near the upper third of the screen (also saved once on load)
-  useEffect(() => {
-    if (!d.data) return
-    const pick = () => {
-      const els = [...document.querySelectorAll('[data-g]')]
-      const line = window.innerHeight * 0.3
-      let cur = els[0]
-      for (const el of els) { if (el.getBoundingClientRect().top <= line) cur = el; else break }
-      if (cur) { clearTimeout(saveT.current); saveT.current = setTimeout(() => saveLast(user, Number(cur.dataset.g)), 1000) }
+  const go = useCallback((to, how = 'next') => {
+    if (to < 1 || to > 604) return
+    setDir(how); nav(`/page/${to}`)
+  }, [nav])
+  const finish = useCallback(async () => {
+    if (user) {
+      try { const st = await post('/khatma/reach', { page }); notify(`أحسنت، أتممت صفحة ${toAr(page)} (${toAr(st.percent)}%)`) } catch { /* no active khatma plan or offline: just turn the page */ }
     }
-    pick()
-    window.addEventListener('scroll', pick, { passive: true })
-    return () => { window.removeEventListener('scroll', pick); clearTimeout(saveT.current) }
-  }, [d.data, user])
+    go(page + 1, 'next')
+  }, [user, page, go, notify])
 
-  const s = d.data
+  useEffect(() => { window.scrollTo(0, 0) }, [page])
+  useEffect(() => { if (page < 604) get('/page/' + (page + 1)).catch(() => {}) }, [page])
+  useEffect(() => {
+    const a = d.data?.ayahs?.[0]; if (!a) return
+    clearTimeout(saveT.current); saveT.current = setTimeout(() => saveLast(user, target || a.g), 800)
+    return () => clearTimeout(saveT.current)
+  }, [d.data, user, target])
+  useEffect(() => {
+    const k = (e) => { if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowLeft') finish(); if (e.key === 'ArrowRight') go(page - 1, 'prev') }
+    window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k)
+  }, [finish, go, page])
+
+  const ayahs = d.data?.ayahs || []
+  const first = ayahs[0]
   const playingG = audio.current?.g
-  let lastPage = null
+  const onTouchStart = (e) => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY } }
+  const onTouchEnd = (e) => {
+    const s = touch.current; if (!s) return; const t = e.changedTouches[0]
+    const dx = t.clientX - s.x, dy = t.clientY - s.y; touch.current = null
+    if (Math.abs(dx) > 70 && Math.abs(dy) < 45) { if (dx > 0) finish(); else go(page - 1, 'prev') }
+  }
+  const surahsOnPage = [...new Set(ayahs.map((a) => surahLabel(a.surah_name)))]
+  const title = surahsOnPage.length > 1 ? surahsOnPage.join(' · ') : surahsOnPage[0]
+
   return (
-    <div>
-      <PageHeader title={s ? `سورة ${s.name}` : '...'} subtitle={s && `${s.type === 'Meccan' ? 'مكية' : 'مدنية'} · ${toAr(s.count)} آية`}
-        right={s && <div className="flex gap-1">
-          <button className="btn-ghost !p-2" aria-label="تصغير الخط" onClick={() => setSettings({ fontSize: Math.max(18, settings.fontSize - 2) })}>أ-</button>
-          <button className="btn-ghost !p-2" aria-label="تكبير الخط" onClick={() => setSettings({ fontSize: Math.min(56, settings.fontSize + 2) })}>أ+</button>
-          <button className="btn-ghost !p-2" aria-label="الوضع الليلي" onClick={() => setSettings({ dark: !settings.dark })}><Icon name={settings.dark ? 'sun' : 'moon'} /></button>
-          <button className="btn-gold !p-2" aria-label="استماع للسورة" onClick={() => audio.playSurah(sn)}><Icon name="headphones" /></button></div>} />
-      {d.loading && <Spinner />}{d.error && <ErrorBox error={d.error} retry={d.reload} />}
-      {s && (<>
-        <div className="card pattern text-center mb-4"><div className="text-2xl font-extrabold">{s.name}</div>{s.bismillah && <div className="quran-text !text-center mt-2">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>}</div>
-        <div className="card !p-4 sm:!p-6">
-          <div className="quran-text" dir="rtl">
-            {s.ayahs.map((a) => {
-              const marker = a.page !== lastPage ? (lastPage = a.page, <span key={'p' + a.page} className="block text-center my-3 text-xs muted border-y border-gold-400/40 py-1 font-sans">الجزء {toAr(a.juz)} · الحزب {toAr(a.hizb)} · صفحة {toAr(a.page)}</span>) : null
-              return (<span key={a.g}>{marker}
-                <span id={'a' + a.g} data-g={a.g} className={`ayah ${playingG === a.g ? 'playing' : ''} ${target === a.g ? 'target' : ''}`} onClick={() => setSheet(a)}>
-                  {a.text}<span className="ayah-end">{toAr(a.n)}</span>{bm.ids.has(a.g) && <Icon name="bookmark" fill className="w-4 h-4 inline text-gold-600" />}</span> </span>)
-            })}
+    <div className={`mushaf-shell ${THEMES[theme]}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <div className="mushaf-top">
+        <button className="mushaf-btn rotate-180" aria-label="رجوع" onClick={() => nav('/quran')}><Icon name="arrow" /></button>
+        <div className="flex-1 min-w-0 text-center">
+          <div className="font-extrabold truncate quran-title">{first ? `سورة ${title}` : '...'}</div>
+          <div className="text-xs opacity-70">{first && `الجزء ${toAr(first.juz)} · الحزب ${toAr(first.hizb)}`}</div>
+        </div>
+        <div className="flex gap-1">
+          <button className="mushaf-btn" aria-label="تصغير الخط" onClick={() => setSettings({ fontSize: Math.max(20, settings.fontSize - 2) })}>أ-</button>
+          <button className="mushaf-btn" aria-label="تكبير الخط" onClick={() => setSettings({ fontSize: Math.min(44, settings.fontSize + 2) })}>أ+</button>
+          <button className="mushaf-btn" aria-label="تغيير لون الصفحة" onClick={() => { const t = NEXT_THEME[theme]; setSettings({ mushafTheme: t, dark: t === 'night' }) }}><Icon name={theme === 'night' ? 'sun' : 'moon'} /></button>
+        </div>
+      </div>
+
+      <div className="mushaf-stage">
+        {d.error && <ErrorBox error={d.error} retry={d.reload} />}
+        {d.loading && !d.data && <div className="py-24"><Spinner /></div>}
+        {d.data && (
+          <div key={page} className={`mushaf-page ${dir === 'next' ? 'turn-next' : 'turn-prev'}`}>
+            <div className="mushaf-frame">
+              <div className="quran-text mushaf-text" dir="rtl">
+                {ayahs.map((a) => (
+                  <span key={a.g}>
+                    {a.n === 1 && (
+                      <span className="block surah-banner"><span className="surah-banner-in">سورة {a.surah_name}</span></span>
+                    )}
+                    {a.n === 1 && a.surah !== 1 && a.surah !== 9 && <span className="block text-center bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</span>}
+                    <span id={'a' + a.g} className={`ayah ${playingG === a.g ? 'playing' : ''} ${target === a.g ? 'target' : ''}`} onClick={() => setSheet(a)}>
+                      {a.text}<span className="ayah-end">{toAr(a.n)}</span>{bm.ids.has(a.g) && <Icon name="bookmark" fill className="w-4 h-4 inline text-gold-600" />}</span>{' '}
+                  </span>
+                ))}
+              </div>
+              <div className="mushaf-foot"><span className="mushaf-num">{toAr(page)}</span></div>
+            </div>
           </div>
-        </div>
-        <div className="flex justify-between mt-4 gap-2">
-          {sn < 114 ? <Link className="btn-ghost" to={`/surah/${sn + 1}`}>السورة التالية ←</Link> : <span />}
-          {sn > 1 && <Link className="btn-ghost" to={`/surah/${sn - 1}`}>→ السورة السابقة</Link>}
-        </div>
-        <p className="muted text-center mt-4">{s.sources.quran}</p>
-      </>)}
+        )}
+      </div>
+
+      <div className="mushaf-bar">
+        <button className="mushaf-nav" onClick={() => go(page - 1, 'prev')} disabled={page <= 1} aria-label="الصفحة السابقة">→ السابقة</button>
+        <button className="mushaf-count" onClick={() => setJump(true)} aria-label="الانتقال إلى صفحة">{toAr(page)} / {toAr(604)}</button>
+        <button className="mushaf-next" onClick={finish} disabled={page >= 604} aria-label="التالي">التالي ←</button>
+      </div>
+      {jump && <JumpSheet page={page} close={() => setJump(false)} go={(n) => { setJump(false); go(n, n > page ? 'next' : 'prev') }} />}
       {sheet && <AyahSheet a={sheet} close={() => setSheet(null)} bm={bm} audio={audio} nav={nav} user={user} notify={notify} />}
     </div>
   )
 }
 
-function AyahSheet({ a, close, bm, audio, nav, user, notify }) {
+function JumpSheet({ page, close, go }) {
+  const [v, setV] = useState('')
+  const list = useLoad(() => get('/surahs'), [])
+  const submit = (e) => { e.preventDefault(); const n = Number(v); if (n >= 1 && n <= 604) go(n) }
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/40 flex items-end justify-center" onClick={close} role="dialog" aria-modal="true" aria-label="الانتقال">
+      <div className="bg-paper dark:bg-[#10201a] text-emerald-950 dark:text-emerald-50 w-full max-w-md rounded-t-3xl p-5 animate-fadeUp max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <form onSubmit={submit} className="flex gap-2 mb-4">
+          <input className="input" inputMode="numeric" placeholder={`رقم الصفحة (١ - ٦٠٤)، الحالية ${toAr(page)}`} value={v} onChange={(e) => setV(e.target.value.replace(/\D/g, ''))} autoFocus aria-label="رقم الصفحة" />
+          <button className="btn-primary" type="submit">اذهب</button>
+        </form>
+        <div className="font-bold mb-2">الأجزاء</div>
+        <div className="grid grid-cols-6 gap-2 mb-4">{Array.from({ length: 30 }, (_, i) => <JuzBtn key={i} j={i + 1} go={go} />)}</div>
+        <div className="font-bold mb-2">السور</div>
+        <div className="grid grid-cols-2 gap-2">{list.data?.map((s) => <button key={s.n} className="btn-ghost !py-2 !justify-start" onClick={() => go(s.page)}><span className="muted w-7">{toAr(s.n)}</span>{surahLabel(s.name)}</button>)}</div>
+      </div>
+    </div>
+  )
+}
+function JuzBtn({ j, go }) {
+  return <button className="btn-ghost !p-2" onClick={async () => { try { const r = await get('/juz/' + j); go(r.page_start) } catch { /* offline and not cached */ } }}>{toAr(j)}</button>
+}
+
+export function AyahSheet({ a, close, bm, audio, nav, user, notify }) {
   const on = bm.ids.has(a.g)
   const act = async (f) => { await f(); }
   const reach = async () => {

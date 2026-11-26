@@ -48,7 +48,7 @@ export default function Quran() {
         <div className="flex gap-2 mb-3">{[['surah', 'السور'], ['juz', 'الأجزاء']].map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={`chip ${tab === k ? 'chip-on' : ''}`}>{l}</button>)}</div>
         {s.loading && <Spinner />}{s.error && <ErrorBox error={s.error} retry={s.reload} />}
         {tab === 'surah' && s.data && <div className="grid sm:grid-cols-2 gap-2">{s.data.map((x) => (
-          <Link key={x.n} to={`/surah/${x.n}`} className="card !p-3 flex items-center gap-3 hover:ring-2 ring-gold-400">
+          <Link key={x.n} to={`/page/${x.page}`} className="card !p-3 flex items-center gap-3 hover:ring-2 ring-gold-400">
             <span className="w-10 h-10 shrink-0 rotate-45 rounded-lg border-2 border-gold-500 flex items-center justify-center"><span className="-rotate-45 font-bold text-sm">{toAr(x.n)}</span></span>
             <div className="flex-1 min-w-0"><div className="font-bold quran-title text-lg">{x.name}</div><div className="muted">{x.type === 'Meccan' ? 'مكية' : 'مدنية'} · {toAr(x.count)} آية</div></div>
             <div className="muted text-xs">جزء {toAr(x.juz)}</div></Link>))}</div>}
@@ -59,7 +59,7 @@ export default function Quran() {
 }
 function JuzLink({ j }) {
   const [to, setTo] = useState(null)
-  useEffect(() => { get('/juz/' + j).then((r) => setTo(`/surah/${r.first.surah}?g=${r.first.g}`)).catch(() => {}) }, [j])
+  useEffect(() => { get('/juz/' + j).then((r) => setTo(`/page/${r.page_start}`)).catch(() => {}) }, [j])
   return <Link to={to || '#'} className="card !p-3 text-center hover:ring-2 ring-gold-400"><div className="muted">الجزء</div><div className="font-extrabold text-xl">{toAr(j)}</div></Link>
 }
 

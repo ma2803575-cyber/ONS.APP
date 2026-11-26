@@ -37,3 +37,33 @@ body { @apply bg-paper text-emerald-950 font-sans antialiased; }
 .pattern { background-image: radial-gradient(circle at 20% 10%, rgba(201,162,75,.18), transparent 40%), radial-gradient(circle at 90% 80%, rgba(16,185,129,.25), transparent 45%); }
 
 .hero-bg { background: radial-gradient(circle at 15% 10%, rgba(201,162,75,.28), transparent 45%), radial-gradient(circle at 90% 90%, rgba(16,185,129,.30), transparent 50%), linear-gradient(145deg, #065f46, #022c22); }
+
+/* ===== Mushaf page reader ===== */
+.mushaf-shell { min-height: 100vh; min-height: 100dvh; display:flex; flex-direction:column; transition: background .3s, color .3s; }
+.mushaf-paper { background:#f4ecd8; color:#1f2a1f; --frame:#b8923a; --ink:#1b2b1f; --bar:#fbf6e7; }
+.mushaf-sepia { background:#e6d3ac; color:#3a2a14; --frame:#8a6a2a; --ink:#3a2a14; --bar:#efe0bd; }
+.mushaf-night { background:#0b1511; color:#e8efe9; --frame:#a88a3d; --ink:#e6ece7; --bar:#10201a; }
+.mushaf-top { position:sticky; top:0; z-index:30; display:flex; align-items:center; gap:.5rem; padding:.6rem .75rem; padding-top:calc(env(safe-area-inset-top) + .6rem); background:var(--bar); border-bottom:1px solid color-mix(in srgb, var(--frame) 45%, transparent); }
+.mushaf-btn { display:inline-flex; align-items:center; justify-content:center; min-width:2.5rem; height:2.5rem; padding:0 .5rem; border-radius:.75rem; font-weight:700; background:color-mix(in srgb, var(--frame) 14%, transparent); }
+.mushaf-btn:active { transform:scale(.94); }
+.mushaf-stage { flex:1; padding:.9rem .75rem 1rem; max-width:44rem; width:100%; margin:0 auto; }
+.mushaf-frame { position:relative; padding:1.1rem .9rem .5rem; border-radius:1.1rem; background:color-mix(in srgb, var(--bar) 55%, transparent); border:3px double var(--frame); box-shadow: 0 0 0 4px color-mix(in srgb, var(--frame) 14%, transparent), 0 10px 30px -12px rgba(0,0,0,.35); }
+.mushaf-text { color:var(--ink); text-align:justify; text-align-last:center; line-height:2.15; }
+.mushaf-text .ayah-end { color:var(--frame); border-color:var(--frame); }
+.surah-banner { margin:.2rem 0 .6rem; text-align:center; }
+.surah-banner-in { display:inline-block; min-width:70%; padding:.15rem 1.6rem; font-family:'Amiri Quran',serif; font-size:1.15em; font-weight:700; border-radius:.6rem; border:2px solid var(--frame); background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--frame) 22%, transparent), transparent); }
+.bismillah { font-family:'Amiri Quran',serif; margin:.1rem 0 .4rem; }
+.mushaf-foot { display:flex; justify-content:center; margin-top:.6rem; }
+.mushaf-num { display:inline-flex; align-items:center; justify-content:center; width:2.6rem; height:2.6rem; font-family:'Cairo',sans-serif; font-weight:700; border-radius:9999px; border:2px solid var(--frame); color:var(--frame); }
+.mushaf-bar { position:sticky; bottom:0; z-index:30; display:flex; align-items:center; gap:.5rem; padding:.6rem .75rem calc(env(safe-area-inset-bottom) + .6rem); background:var(--bar); border-top:1px solid color-mix(in srgb, var(--frame) 45%, transparent); }
+.mushaf-nav, .mushaf-next { height:3rem; border-radius:.9rem; font-weight:800; transition:transform .1s, opacity .2s; }
+.mushaf-nav { padding:0 1rem; background:color-mix(in srgb, var(--frame) 16%, transparent); }
+.mushaf-next { flex:1; background:#047857; color:#fff; box-shadow:0 6px 16px -6px rgba(4,120,87,.7); font-size:1.05rem; }
+.mushaf-night .mushaf-next { background:#c9a24b; color:#022c22; }
+.mushaf-nav:active, .mushaf-next:active { transform:scale(.96); }
+.mushaf-nav:disabled, .mushaf-next:disabled { opacity:.4; }
+.mushaf-count { min-width:5rem; height:3rem; font-weight:700; font-size:.9rem; border-radius:.9rem; border:1.5px solid color-mix(in srgb, var(--frame) 60%, transparent); }
+.mushaf-text .ayah.playing { background: rgba(5,150,105,.25); }
+@keyframes turnNext { from { opacity:0; transform:translateX(-26px); } to { opacity:1; transform:none; } }
+@keyframes turnPrev { from { opacity:0; transform:translateX(26px); } to { opacity:1; transform:none; } }
+.turn-next { animation: turnNext .28s ease both; } .turn-prev { animation: turnPrev .28s ease both; }

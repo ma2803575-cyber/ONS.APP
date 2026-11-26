@@ -18,6 +18,7 @@ async function precacheContent() {
   const urls = ['/api/surahs', '/api/meta', '/api/adhkar', '/api/duas', '/api/sadaqah', '/api/deceased-duas']
   for (let n = 1; n <= 114; n++) urls.push('/api/surahs/' + n)
   for (let j = 1; j <= 30; j++) urls.push('/api/juz/' + j)
+  for (let p = 1; p <= 604; p++) urls.push('/api/page/' + p)
   try { const r = await fetch('/api/adhkar'); if (r.ok) (await r.json()).categories.forEach((x) => urls.push('/api/adhkar/' + x.id)) } catch { /* ignore */ }
   for (let i = 0; i < urls.length; i += 8) await Promise.all(urls.slice(i, i + 8).map(put))
 }
