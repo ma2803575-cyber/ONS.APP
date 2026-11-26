@@ -14,6 +14,8 @@ const MAIN = [
 ]
 const MORE = [
   { to: '/wird', icon: 'flame', label: 'الورد اليومي' },
+  { to: '/quiz', icon: 'brain', label: 'اختبر حفظك' },
+  { to: '/circles', icon: 'user', label: 'تحدي الأصحاب' },
   { to: '/memorization', icon: 'brain', label: 'الحفظ والمراجعة' },
   { to: '/tasbeeh', icon: 'circle', label: 'المسبحة' },
   { to: '/duas', icon: 'heart', label: 'الأدعية' },

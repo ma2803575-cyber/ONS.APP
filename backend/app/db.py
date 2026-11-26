@@ -118,6 +118,23 @@ class Notification(Base):
     read = Column(Boolean, default=False)
     created_at = Column(DateTime, default=now)
 
+class Circle(Base):
+    """Friends reading challenge: a named group joined by a short code."""
+    __tablename__ = "circles"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(60), nullable=False)
+    code = Column(String(12), unique=True, index=True, nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    created_at = Column(DateTime, default=now)
+
+class CircleMember(Base):
+    __tablename__ = "circle_members"
+    __table_args__ = (UniqueConstraint("circle_id", "user_id"),)
+    id = Column(Integer, primary_key=True)
+    circle_id = Column(Integer, ForeignKey("circles.id", ondelete="CASCADE"), index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    joined_at = Column(DateTime, default=now)
+
 def init_db():
     Base.metadata.create_all(engine)
 

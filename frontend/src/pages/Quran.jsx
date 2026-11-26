@@ -9,7 +9,7 @@ import { toAr } from '../lib'
 export default function Quran() {
   const { user } = useApp()
   const [q, setQ] = useState(''); const [res, setRes] = useState(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState('')
-  const [tab, setTab] = useState('surah')
+  const [tab, setTab] = useState('surah'); const [mode, setMode] = useState('word')
   const s = useLoad(() => get('/surahs'), [])
   const last = useLoad(() => lastReadAyah(user), [user])
 
@@ -17,10 +17,10 @@ export default function Quran() {
     if (q.trim().length < 2) { setRes(null); setErr(''); return }
     const t = setTimeout(async () => {
       setBusy(true); setErr('')
-      try { setRes(await get('/search?q=' + encodeURIComponent(q.trim()))) } catch (e) { setErr(e.message) } finally { setBusy(false) }
+      try { setRes(await get('/search?q=' + encodeURIComponent(q.trim()) + (mode === 'meaning' ? '&mode=meaning' : ''))) } catch (e) { setErr(e.message) } finally { setBusy(false) }
     }, 350)
     return () => clearTimeout(t)
-  }, [q])
+  }, [q, mode])
 
   const lastAyah = last.data && (last.data.then ? null : last.data)
   return (
@@ -29,6 +29,8 @@ export default function Quran() {
       <div className="relative mb-3"><Icon name="search" className="w-5 h-5 absolute top-3.5 right-3 opacity-50" />
         <input className="input !pr-10" placeholder="ابحث عن سورة أو كلمة أو آية (مثل 2:255)" value={q} onChange={(e) => setQ(e.target.value)} aria-label="بحث في القرآن" /></div>
 
+      <div className="flex gap-2 mb-3">{[['word', 'بحث بالكلمة'], ['meaning', 'بحث بالمعنى']].map(([k, l]) => <button key={k} onClick={() => setMode(k)} className={`chip ${mode === k ? 'chip-on' : ''}`}>{l}</button>)}</div>
+      {mode === 'meaning' && q.trim().length < 2 && <p className="muted mb-3">اكتب موضوعاً مثل «الصبر» أو «الرزق» أو «بر الوالدين» وستظهر الآيات المتعلقة به من القرآن وتفسيره.</p>}
       {q.trim().length >= 2 ? (
         <div className="space-y-3">
           {busy && <Spinner />}{err && <ErrorBox error={err} />}
@@ -36,7 +38,7 @@ export default function Quran() {
             {res.surahs.length > 0 && <div className="flex flex-wrap gap-2">{res.surahs.map((x) => <Link key={x.n} to={`/surah/${x.n}`} className="chip chip-on">سورة {x.name}</Link>)}</div>}
             {res.ayahs.length === 0 && res.surahs.length === 0 && <Empty icon="search" title="لا نتائج">جرّب كلمة أخرى بدون تشكيل.</Empty>}
             {res.ayahs.map((a) => (
-              <Link key={a.g} to={`/surah/${a.surah}?g=${a.g}`} className="card block hover:ring-2 ring-gold-400">
+              <Link key={a.g} to={`/page/${a.page}?g=${a.g}`} className="card block hover:ring-2 ring-gold-400">
                 <div className="quran-text !text-[22px] !leading-[2.2]">{a.text}</div>
                 <div className="muted mt-1">{a.surah_name} · آية {toAr(a.n)} · صفحة {toAr(a.page)}</div>
               </Link>))}
@@ -44,7 +46,7 @@ export default function Quran() {
           </>)}
         </div>
       ) : (<>
-        {lastAyah && <Link to={`/surah/${lastAyah.surah}?g=${lastAyah.g}`} className="card flex items-center gap-3 mb-3 bg-gradient-to-l from-gold-100 to-white dark:from-gold-500/10"><Icon name="book2" className="w-8 h-8 text-gold-600" /><div className="flex-1"><div className="font-bold">تابع من آخر موضع</div><div className="muted">سورة {lastAyah.surah_name} · آية {toAr(lastAyah.n)}</div></div></Link>}
+        {lastAyah && <Link to={`/page/${lastAyah.page}?g=${lastAyah.g}`} className="card flex items-center gap-3 mb-3 bg-gradient-to-l from-gold-100 to-white dark:from-gold-500/10"><Icon name="book2" className="w-8 h-8 text-gold-600" /><div className="flex-1"><div className="font-bold">تابع من آخر موضع</div><div className="muted">سورة {lastAyah.surah_name} · آية {toAr(lastAyah.n)}</div></div></Link>}
         <div className="flex gap-2 mb-3">{[['surah', 'السور'], ['juz', 'الأجزاء']].map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={`chip ${tab === k ? 'chip-on' : ''}`}>{l}</button>)}</div>
         {s.loading && <Spinner />}{s.error && <ErrorBox error={s.error} retry={s.reload} />}
         {tab === 'surah' && s.data && <div className="grid sm:grid-cols-2 gap-2">{s.data.map((x) => (

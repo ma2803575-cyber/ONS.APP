@@ -13,6 +13,8 @@ const Bookmarks = lazy(() => import('./pages/Quran').then(m => ({ default: m.Boo
 const Reader = lazy(() => import('./pages/Reader'))
 const SurahRedirect = lazy(() => import('./pages/Reader').then(m => ({ default: m.SurahRedirect })))
 const Tafsir = lazy(() => import('./pages/Reader').then(m => ({ default: m.Tafsir })))
+const Circles = lazy(() => import('./pages/Circles'))
+const Quiz = lazy(() => import('./pages/Quiz'))
 const AudioPage = lazy(() => import('./pages/AudioPage'))
 const Khatma = lazy(() => import('./pages/Khatma').then(m => ({ default: m.Khatma })))
 const Wird = lazy(() => import('./pages/Khatma').then(m => ({ default: m.Wird })))
@@ -42,7 +44,7 @@ export default function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/quran" element={<Quran />} /><Route path="/surah/:n" element={<SurahRedirect />} /><Route path="/page/:p" element={<Reader />} />
         <Route path="/tafsir/:g" element={<Tafsir />} /><Route path="/bookmarks" element={<Bookmarks />} />
-        <Route path="/audio" element={<AudioPage />} />
+        <Route path="/audio" element={<AudioPage />} /><Route path="/circles" element={<Circles />} /><Route path="/quiz" element={<Quiz />} />
         <Route path="/wird" element={<Wird />} /><Route path="/khatma" element={<Khatma />} />
         <Route path="/memorization" element={<Memorization />} />
         <Route path="/adhkar" element={<Adhkar />} /><Route path="/adhkar/:id" element={<AdhkarCategory />} /><Route path="/adhkar-favorites" element={<AdhkarFavorites />} />

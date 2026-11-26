@@ -195,3 +195,27 @@ def test_security_headers_and_sql_injection(client):
     assert r.status_code == 401
     r = client.get("/api/search", params={"q": "'; DROP TABLE users;--"})
     assert r.status_code == 200 and r.json()["ayahs"] == []
+
+
+def test_meaning_search(client):
+    r = client.get("/api/search", params={"q": "الصبر", "mode": "meaning"}).json()
+    assert r["kind"] == "meaning" and len(r["ayahs"]) > 5
+
+
+def test_circles_challenge(client, auth):
+    import uuid
+    h1, _ = auth
+    r2 = client.post("/api/auth/register", json={"name": "علي", "email": f"u{uuid.uuid4().hex[:8]}@example.com", "password": "Passw0rd!x"})
+    h2 = {"Authorization": "Bearer " + r2.json()["token"]}
+    c = client.post("/api/circles", json={"name": "شلة الختمة"}, headers=h1).json()
+    assert len(c["code"]) == 6 and c["owner"] and len(c["members"]) == 1
+    assert client.post("/api/circles/join", json={"code": "ZZZZZZ"}, headers=h2).status_code == 404
+    j = client.post("/api/circles/join", json={"code": c["code"].lower()}, headers=h2).json()
+    assert len(j["members"]) == 2
+    client.post("/api/khatma/plan", json={"days": 30}, headers=h2)
+    client.post("/api/khatma/reach", json={"page": 5}, headers=h2)
+    mine = client.get("/api/circles", headers=h2).json()[0]
+    assert mine["members"][0]["name"] == "علي" and mine["members"][0]["week"] == 5 and mine["members"][0]["me"]
+    assert client.delete(f"/api/circles/{c['id']}", headers=h2).json()["ok"]
+    assert len(client.get("/api/circles", headers=h1).json()[0]["members"]) == 1
+    assert client.get("/api/circles").status_code == 401

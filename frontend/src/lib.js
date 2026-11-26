@@ -13,7 +13,7 @@ export function greeting(d = new Date()) {
   if (h < 20) return 'مساء النور'
   return 'مساء الخير'
 }
-export const surahLabel = (s) => (s || '').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '').trim()
+export const surahLabel = (s) => (s || '').replace(/[\u064B-\u0652\u0654-\u065F\u0670\u06D6-\u06ED\u0640]/g, '').trim()
 export function ayahShareText(a) {
   return `﴿${a.text}﴾\n[${a.surah_name} : ${a.n}]\n\nمن تطبيق أُنس | ONS`
 }

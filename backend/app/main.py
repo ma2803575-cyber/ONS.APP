@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from . import config, content as C
 from .assistant import answer as assistant_answer
-from .db import (init_db, get_db, User, ResetToken, Bookmark, ReadingState, KhatmaPlan, ReadingLog, MemItem,
+from .db import (Circle, CircleMember, init_db, get_db, User, ResetToken, Bookmark, ReadingState, KhatmaPlan, ReadingLog, MemItem,
                  TasbeehTotal, DhikrFav, DhikrDone, Deceased, Notification)
 from .security import hash_password, verify_password, make_token, current_user, optional_user, sha, new_reset_token
 
@@ -188,9 +188,12 @@ def get_tafsir(g: int):
         {"id": "jalalayn", "name": "تفسير الجلالين", "text": a["tj"], "source": C.TAFSIR_SOURCES["jalalayn"]}]}
 
 @app.get("/api/search")
-def search(q: str = Query(min_length=2, max_length=80), limit_: int = Query(30, alias="limit", ge=1, le=100)):
+def search(q: str = Query(min_length=2, max_length=80), limit_: int = Query(30, alias="limit", ge=1, le=100), mode: str = "word"):
     qs = q.strip()
     res, kind = [], "word"
+    if mode == "meaning":  # topic search over the ayah text + Tafsir al-Muyassar (e.g. "الصبر")
+        hits = C.ayah_index().search(C.tokens(qs), limit_)
+        return {"query": qs, "kind": "meaning", "surahs": [], "ayahs": [C.ayah_view(C.ayahs()[i]) for i, _ in hits]}
     m = re.fullmatch(r"\s*(\d{1,3})\s*[:/]\s*(\d{1,3})\s*", qs.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")))
     surah_hits = [s for s in C.surahs() if C.norm(qs) and C.norm(qs) in C.norm(s["name"])]
     if m:
@@ -620,6 +623,58 @@ def ask(b: AskIn, request: Request):
     return assistant_answer(b.message)
 
 # ================= FRONTEND (built SPA) =================
+# ---------- friends reading challenge (circles) ----------
+import secrets
+class CircleIn(BaseModel):
+    name: str = Field(min_length=2, max_length=60)
+class JoinIn(BaseModel):
+    code: str = Field(min_length=4, max_length=12)
+
+def circle_view(db, c, uid):
+    members = db.scalars(select(CircleMember).where(CircleMember.circle_id == c.id)).all()
+    since = today() - dt.timedelta(days=6); rows = []
+    for mb in members:
+        u = db.get(User, mb.user_id)
+        logs = db.scalars(select(ReadingLog).where(ReadingLog.user_id == mb.user_id)).all()
+        rows.append({"user_id": mb.user_id, "name": u.name if u else "؟", "me": mb.user_id == uid,
+                     "week": sum(l.pages for l in logs if l.day >= since), "total": sum(l.pages for l in logs), "streak": streak(db, mb.user_id)})
+    rows.sort(key=lambda r: (-r["week"], -r["total"]))
+    for i, r in enumerate(rows): r["rank"] = i + 1
+    return {"id": c.id, "name": c.name, "code": c.code, "owner": c.owner_id == uid, "members": rows}
+
+@app.get("/api/circles")
+def my_circles(u: User = Depends(current_user), db: Session = Depends(get_db)):
+    ids = db.scalars(select(CircleMember.circle_id).where(CircleMember.user_id == u.id)).all()
+    return [circle_view(db, db.get(Circle, i), u.id) for i in ids]
+
+@app.post("/api/circles")
+def create_circle(b: CircleIn, u: User = Depends(current_user), db: Session = Depends(get_db)):
+    if len(db.scalars(select(CircleMember.id).where(CircleMember.user_id == u.id)).all()) >= 10: raise HTTPException(400, "وصلت للحد الأقصى من المجموعات")
+    c = Circle(name=b.name.strip(), code=secrets.token_hex(3).upper(), owner_id=u.id); db.add(c); db.flush()
+    db.add(CircleMember(circle_id=c.id, user_id=u.id)); db.commit()
+    return circle_view(db, c, u.id)
+
+@app.post("/api/circles/join")
+def join_circle(b: JoinIn, u: User = Depends(current_user), db: Session = Depends(get_db)):
+    c = db.scalar(select(Circle).where(Circle.code == b.code.strip().upper()))
+    if not c: raise HTTPException(404, "كود المجموعة غير صحيح")
+    if not db.scalar(select(CircleMember).where(CircleMember.circle_id == c.id, CircleMember.user_id == u.id)):
+        if len(db.scalars(select(CircleMember.id).where(CircleMember.circle_id == c.id)).all()) >= 50: raise HTTPException(400, "المجموعة ممتلئة")
+        db.add(CircleMember(circle_id=c.id, user_id=u.id)); db.commit()
+    return circle_view(db, c, u.id)
+
+@app.delete("/api/circles/{cid}")
+def leave_circle(cid: int, u: User = Depends(current_user), db: Session = Depends(get_db)):
+    mb = db.scalar(select(CircleMember).where(CircleMember.circle_id == cid, CircleMember.user_id == u.id))
+    if not mb: raise HTTPException(404, "غير موجود")
+    db.delete(mb); db.commit()
+    left = db.scalars(select(CircleMember.id).where(CircleMember.circle_id == cid)).all()
+    if not left:
+        c = db.get(Circle, cid)
+        if c: db.delete(c); db.commit()
+    return {"ok": True}
+
+
 if config.FRONTEND_DIST.exists():
     app.mount("/assets", StaticFiles(directory=config.FRONTEND_DIST / "assets"), name="assets")
     @app.get("/{path:path}")
