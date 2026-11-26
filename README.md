@@ -4,7 +4,7 @@
 
 **التطبيق يعمل الآن:** https://ons-quran.onrender.com
 
-> English: ONS is a free, installable Arabic Quran web app (PWA). Full Mushaf, daily wird, khatma planner, adhkar and duas, last-read position and bookmarks. Stack: FastAPI, React + Vite + Tailwind, PostgreSQL. Live demo above.
+> English: ONS is a free, installable Arabic Quran web app (PWA). Printed-style Mushaf pages, tafsir, meaning search, memorization quiz, friends khatma circles, prayer times, adhkar reminders, share-ayah cards, khatma planner, bookmarks. Stack: FastAPI, React + Vite + Tailwind, PostgreSQL. Live demo above.
 
 <p align="center">
   <img src="docs/onboarding.png" width="260" alt="Welcome screen">
@@ -13,11 +13,15 @@
 
 ## المميزات
 - المصحف كاملاً (6236 آية) بالرسم العثماني مع الجزء والحزب والصفحة والبحث
-- قراءة صفحة بصفحة بشكل المصحف (٦٠٤ صفحة) مع زر «التالي» بعد إنهاء كل صفحة، وسحب لقلب الصفحة، وثلاثة ألوان للورق (فاتح، سيبيا، ليلي)، وتسجيل تقدّم الختمة تلقائياً
+- قراءة بشكل صفحات المصحف المطبوع (٦٠٤ صفحة): زر «التالي»، سحب لقلب الصفحة، ثلاثة ألوان للورق (فاتح، سيبيا، ليلي)، تظليل الآيات، وتسجيل تقدّم الختمة تلقائياً
+- التفسير مع المصدر، والبحث بالمعنى
+- اختبار الحفظ والمراجعة
+- ختمات جماعية مع الأصدقاء (حلقات)
+- مواقيت الصلاة وتذكيرات الأذكار والورد
 - مشاركة أي آية كصورة جاهزة، وآية اليوم في الرئيسية
-- آخر موضع قراءة تلقائي وعلامات مرجعية
-- خطة ختمة ومتابعة التقدم، وورد يومي
+- آخر موضع قراءة تلقائي وعلامات مرجعية، وخطة ختمة ومتابعة التقدم
 - الأذكار والأدعية من مصادر موثقة
+- تصميم بلونين: كحلي ملكي وذهبي
 - يعمل بدون إنترنت بعد أول فتح (المصحف والأذكار والأدعية والعلامات)، ويتحدّث تلقائياً مع كل إصدار
 
 ## تثبيت التطبيق على الموبايل
