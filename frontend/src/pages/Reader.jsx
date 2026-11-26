@@ -48,12 +48,10 @@ export default function Reader() {
   // typeset like a printed mushaf page: ~15 justified lines filling the screen; A-/A+ scale on top
   useLayoutEffect(() => {
     const el = textRef.current; if (!el || !d.data) return
-    const banners = d.data.ayahs.filter((a) => a.n === 1).length
-    const N = 17 + 2.5 * banners
     const avail = window.innerHeight - 150
     el.style.lineHeight = '1.95'
-    let lo = 14, hi = 27
-    while (hi - lo > 0.5) { const mid = (lo + hi) / 2; el.style.fontSize = mid + 'px'; if (el.scrollHeight / (mid * 1.95) <= N + 0.2) lo = mid; else hi = mid }
+    let lo = 14, hi = 34
+    while (hi - lo > 0.5) { const mid = (lo + hi) / 2; el.style.fontSize = mid + 'px'; if (el.scrollHeight <= avail) lo = mid; else hi = mid }
     el.style.fontSize = lo + 'px'
     const lines = Math.max(1, Math.round(el.scrollHeight / (lo * 1.95)))
     const lh = Math.min(2.8, Math.max(1.8, avail / (lines * lo)))
